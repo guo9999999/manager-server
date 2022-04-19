@@ -24,7 +24,7 @@ router.post('/login', async (ctx) => {
       data: data
     },
     'imooc',
-    { expiresIn: 30 }
+    { expiresIn: 60 * 60 }
   )
   try {
     // 如果成功，返回数据
