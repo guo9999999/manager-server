@@ -25,7 +25,7 @@ module.exports = {
         pageNum,
         pageSize
       },
-      skipIndex
+      skipIndex //从哪里开始的下标
     }
   },
   success(data = '', msg = '', code = CODE.SUCCESS) {

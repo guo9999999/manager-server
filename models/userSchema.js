@@ -4,9 +4,9 @@
 const mongoose = require('mongoose')
 const userSchema = mongoose.Schema({
   userId: Number, //用户ID，自增长
-  username: String, //用户名称
+  userName: String, //用户名称
   password: String, //用户密码，md5加密
-  userEmail: String, //用户邮箱
+  userEmail: String, //用户邮箱N
   mobile: String, //手机号
   sex: Number, //性别 0:男  1：女
   deptId: [], //部门
