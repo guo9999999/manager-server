@@ -6,12 +6,15 @@ const onerror = require('koa-onerror')
 const bodyparser = require('koa-bodyparser')
 // const logger = require('koa-logger')
 const log4js = require('./utils/log4')
-const users = require('./routes/users')
+
 // 导入路由模块
 const router = require('koa-router')()
 
 const koajwt = require('koa-jwt')
 const util = require('./utils/util.js')
+
+const users = require('./routes/users')
+const menu = require('./routes/menu.js')
 
 // 导入连接数据库
 require('./config/db.js')
@@ -59,6 +62,7 @@ router.prefix('/api') //定义一级路由
 
 // 加载2级路由
 router.use(users.routes(), users.allowedMethods())
+router.use(menu.routes(), menu.allowedMethods())
 // 加载全局路由
 app.use(router.routes(), router.allowedMethods())
 
