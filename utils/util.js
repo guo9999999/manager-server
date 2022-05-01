@@ -2,6 +2,8 @@
  * 通用工具函数
  */
 const log4js = require('./log4')
+// 导入jsonwebtoken，用于生成token
+const jwt = require('jsonwebtoken')
 const CODE = {
   SUCCESS: 200,
   PARAM_ERROR: 400, // 参数错误
@@ -44,5 +46,42 @@ module.exports = {
       msg
     }
   },
-  CODE
+  CODE,
+  /**
+   * 解密token
+   * @param {*} authorization
+   */
+  decode(authorization) {
+    if (authorization) {
+      const token = authorization.split(' ')[1]
+      return jwt.verify(token, 'imooc')
+    }
+    return ''
+  },
+  /**
+   * 获取菜单树形结构
+   * @param {所有菜单列表数据} rootList
+   * @param {根据id进行结构} id
+   */
+  getTreeMenu(rootList, id) {
+    const filterArr = rootList.filter((item) => {
+      return String(item.parentId.slice().pop()) == String(id)
+    })
+
+    if (filterArr.length) {
+      filterArr.map((item) => {
+        item._doc.children = this.getTreeMenu(rootList, item._id)
+        if (
+          item._doc.children.length > 0 &&
+          item._doc.children[0].menuType == 2
+        ) {
+          item._doc.action = item._doc.children
+        }
+        // console.log('item =>', item._doc.children)
+      })
+      return filterArr
+    } else {
+      return filterArr
+    }
+  }
 }

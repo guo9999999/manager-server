@@ -4,6 +4,8 @@
 const router = require('koa-router')()
 // 导入用户表(模型)
 const User = require('../models/userSchema')
+const Menu = require('../models/menuSchema')
+const Role = require('../models/roleSchema')
 const Count = require('../models/countSchema.js')
 // 导入提示输出
 const util = require('../utils/util')
@@ -18,19 +20,21 @@ router.prefix('/users')
  */
 router.post('/login', async (ctx) => {
   const { userName, password } = ctx.request.body
-  console.log(ctx.request.body)
   // 查找数据  findOne（查找的条件）查找一条数据
-  const res = await User.findOne({
-    userName,
-    password
-  }).select('userId')
+  const res = await User.findOne(
+    {
+      userName,
+      password
+    },
+    { password: 0 }
+  )
   const data = res._doc
   const token = jwt.sign(
     {
       data: data
     },
     'imooc',
-    { expiresIn: 60 * 60 }
+    { expiresIn: 3600 * 10 }
   )
   try {
     // 如果成功，返回数据
@@ -165,4 +169,77 @@ router.post('/create', async (ctx) => {
   }
 })
 
+router.get('/all/list', async (ctx) => {
+  try {
+    const list = await User.find()
+    ctx.body = util.success(list)
+  } catch (error) {
+    ctx.body = util.fail(error.message)
+  }
+})
+/**
+ * 获取权限接口
+ */
+router.get('/getPermissionList', async (ctx) => {
+  // 获取token信息
+  const authorization = ctx.request.headers.authorization
+  const { data } = util.decode(authorization)
+  let menuList = await getMenuList(data.role, data.roleList)
+  let actionList = getActionList(JSON.parse(JSON.stringify(menuList)))
+  ctx.body = util.success({ menuList, actionList })
+})
+/**
+ * 处理根据权限获取菜单列表
+ * @param {*} userRole
+ * @param {*} roleKeys
+ */
+async function getMenuList(userRole, roleKeys) {
+  let rootList = []
+  if (userRole == 0) {
+    // 管理员权限
+    rootList = (await Menu.find()) || []
+  } else {
+    //根据用户拥有的角色，获取当前的权限列表
+    // 查找用户对应的角色列表
+    const roleList = await Role.find({ _id: { $in: roleKeys } })
+    let permissionList = []
+    roleList.map((role) => {
+      let { checkedKeys, halfCheckedKeys } = role.permissionList
+      // 把权限合并成一个数组
+      permissionList = permissionList.concat([
+        ...checkedKeys,
+        ...halfCheckedKeys
+      ])
+    })
+    // 去掉重复的权限
+    permissionList = [...new Set(permissionList)]
+    // 查找当前用户有权限的菜单
+    rootList = await Menu.find({ _id: { $in: permissionList } })
+    console.log('roleList=》', permissionList)
+  }
+  return util.getTreeMenu(rootList, null)
+}
+
+/**
+ * 获取当前用户权限下的按钮权限控制
+ * @param {*} rootList
+ */
+function getActionList(rootList) {
+  let actionList = []
+  const deep = (arr) => {
+    while (arr.length) {
+      let item = arr.pop()
+      if (item.action) {
+        item.action.map((action) => {
+          actionList.push(action.menuCode)
+        })
+      }
+      if (item.children && !item.action) {
+        deep(item.children)
+      }
+    }
+  }
+  deep(rootList)
+  return actionList
+}
 module.exports = router

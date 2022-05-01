@@ -6,6 +6,7 @@ const router = require('koa-router')()
 const util = require('../utils/util')
 
 const Menu = require('../models/menuSchema.js')
+
 // 当前模块
 router.prefix('/menu')
 
@@ -45,23 +46,12 @@ router.get('/list', async (ctx) => {
   if (menuName) params.menuName = menuName
   if (menuState) params.menuState = menuState
   const list = (await Menu.find(params)) || []
-
-  let res = getTreeMenu(list, null)
-  ctx.body = util.success(res)
+  if (menuName) {
+    ctx.body = util.success(list)
+  } else {
+    let res = util.getTreeMenu(list, null)
+    ctx.body = util.success(res)
+  }
 })
 
-function getTreeMenu(rootList, id) {
-  const filterArr = rootList.filter((item) => {
-    return String(item.parentId.slice().pop()) == String(id)
-  })
-
-  if (filterArr.length) {
-    filterArr.map((item) => {
-      item._doc.children = getTreeMenu(rootList, item._id)
-    })
-    return filterArr
-  } else {
-    return filterArr
-  }
-}
 module.exports = router

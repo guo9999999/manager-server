@@ -15,6 +15,8 @@ const util = require('./utils/util.js')
 
 const users = require('./routes/users')
 const menu = require('./routes/menu.js')
+const role = require('./routes/role.js')
+const dept = require('./routes/dept')
 
 // 导入连接数据库
 require('./config/db.js')
@@ -60,9 +62,11 @@ app.use(
 
 router.prefix('/api') //定义一级路由
 
-// 加载2级路由
+// 加载1级路由
 router.use(users.routes(), users.allowedMethods())
 router.use(menu.routes(), menu.allowedMethods())
+router.use(role.routes(), role.allowedMethods())
+router.use(dept.routes(), dept.allowedMethods())
 // 加载全局路由
 app.use(router.routes(), router.allowedMethods())
 
