@@ -17,6 +17,7 @@ const users = require('./routes/users')
 const menu = require('./routes/menu.js')
 const role = require('./routes/role.js')
 const dept = require('./routes/dept')
+const leave = require('./routes/leave.js')
 
 // 导入连接数据库
 require('./config/db.js')
@@ -67,6 +68,7 @@ router.use(users.routes(), users.allowedMethods())
 router.use(menu.routes(), menu.allowedMethods())
 router.use(role.routes(), role.allowedMethods())
 router.use(dept.routes(), dept.allowedMethods())
+router.use(leave.routes(), leave.allowedMethods())
 // 加载全局路由
 app.use(router.routes(), router.allowedMethods())
 
